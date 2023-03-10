@@ -22,8 +22,13 @@ import cv2
 import numpy as np
 
 
-# passded
 def create_config(parameter, filelist):
+    """
+    Return the filelist, method, index
+    :param parameter: the method used to compute optical flow, such as CPM
+    :param filelist: the list continues info about flow's path
+    :return: list({filelist, method, index})
+    """
     config_list = list()
     for id, f in enumerate(filelist):
         file_list = copy.deepcopy(f)
@@ -32,7 +37,6 @@ def create_config(parameter, filelist):
     return config_list
 
 
-# passded
 def computeEE(src0, src1):
     diff_flow = src0 - src1
     res = (diff_flow[:, :, 0] * diff_flow[:, :, 0]) + (diff_flow[:, :, 1] * diff_flow[:, :, 1])
@@ -145,15 +149,17 @@ def parameter_to_string(parameter_dict):
 
 def get_sequence_measures(result_list):
     """
-    提取计算光流所使用方法的结果
-    :param result_list: parameter_str: 计算光流所使用的方法; seq_name: 存放连续帧图片的文件夹
+    将计算结果按照方法、类别生成list
+    :param result_list:
+    :param parameter_str: 计算光流所使用的方法
+    :param seq_name: 存放连续帧图片的文件夹
     :return: sequence_list
     """
     sequence_list = dict()
     for item in result_list:
-        parameter_str = parameter_to_string(item[0]["parameter"])
+        parameter_str = parameter_to_string(item[0]["parameter"])  # 获取计算光流所使用的方法
         if "dir" in item[0]["files"]:
-            seq_name = item[0]["files"]["dir"]
+            seq_name = item[0]["files"]["dir"]  # 获取当前光流所处的父文件夹
         else:
             seq_name = "None"
 
@@ -172,20 +178,25 @@ def get_sequence_measures(result_list):
 
 
 def avg_sequence(src):
+    """
+    计算每一个类别中FG、BG、Total的ee、R1、R2、R3
+    :param src:
+    :return:
+    """
     sequence_result = dict()
-    for seq_keys in src.keys():
+    for seq_keys in src.keys():  # 遍历类别
         result = dict()
-        for item in src[seq_keys]:
-            for key in item.keys():
+        for item in src[seq_keys]:  # 遍历类内的连续帧
+            for key in item.keys():  # 遍历FG、BG、Total
                 if key != "FG" and key != "BG" and key != "Total":
                     continue
                 if key not in result:
                     result[key] = item[key]
                 else:
-                    for key1 in item[key].keys():
+                    for key1 in item[key].keys():  # 遍历ee、R1、R2、R3、noPoints
                         result[key][key1] += item[key][key1]
 
-        for key in result.keys():
+        for key in result.keys():  # 遍历FG、BG、Total
             result[key]["ee"] = result[key]["ee"] / result[key]["noPoints"]
             result[key]["R1"] = result[key]["R1"] / result[key]["noPoints"]
             result[key]["R2"] = result[key]["R2"] / result[key]["noPoints"]
@@ -195,13 +206,19 @@ def avg_sequence(src):
 
 
 def avg_sequences(sequence_list, use_type):
+    """
+    计算整个数据集在FG、BG、Total下的ee、R2
+    :param sequence_list:
+    :param use_type:
+    :return:
+    """
     res_FG_ee = []
     res_FG_R2 = []
     res_BG_ee = []
     res_BG_R2 = []
     res_total_ee = []
     res_total_R2 = []
-    for seq_name in sequence_list.keys():
+    for seq_name in sequence_list.keys():  # 遍历类别
         if use_type == 1 and seq_name.find("_hDyn") == -1:
             continue
         if use_type == 0 and seq_name.find("_hDyn") >= 0:
@@ -234,13 +251,13 @@ def getLatexTable(filename):
     method_result_list = get_sequence_measures(result_list)
     for method_key in method_result_list.keys():
         sequence_result = avg_sequence(method_result_list[method_key])
-        # print(sequence_result)
+
         ret_static = avg_sequences(sequence_result, 0)
         ret_dynamic = avg_sequences(sequence_result, 1)
         ret_total = avg_sequences(sequence_result, 2)
         name = method_key.replace("/", "")
         name = name.replace("_", "")
-        str_out = method_key \
+        str_out = name \
                   + " & {:.3f}".format(ret_static[0]) \
                   + " & {:.2f}".format(ret_static[1]) \
                   + " & {:.3f}".format(ret_static[2]) \
