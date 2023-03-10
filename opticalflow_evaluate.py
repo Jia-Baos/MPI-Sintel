@@ -91,6 +91,9 @@ def main():
     out_dict = {"result": result_list}
     pickle.dump(out_dict, open(result_filename, "wb"))
 
+    # Test
+    ut.avg_measures_test(result_filename)
+
     result_str = ut.getLatexTable(result_filename)
     print(result_str)
     if len(latex_filename) > 0:
@@ -98,4 +101,5 @@ def main():
             f.write(result_str)
 
 
-main()
+if __name__ == '__main__':
+    main()
