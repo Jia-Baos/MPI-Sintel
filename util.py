@@ -286,34 +286,39 @@ def getLatexTable(filename):
 
 
 def avg_measures(src):
+    """
+    计算数据集的ee、R1、R2、R3
+    :param src:
+    :return:
+    """
     total_result = dict()
-    for seq_keys in src.keys():
+    for seq_keys in src.keys():  # 遍历类别
         result = dict()
-        for item in src[seq_keys]:
-            for key in item.keys():
+        for item in src[seq_keys]:  # 遍历类内的连续帧
+            for key in item.keys():  # 遍历FG、BG、Total
                 if key == "time":
                     continue
                 if key not in result:
                     result[key] = item[key]
                 else:
-                    for key1 in item[key].keys():
+                    for key1 in item[key].keys():  # 遍历ee、R1、R2、R3、noPoints
                         result[key][key1] += int(item[key][key1])
 
-        for key in result.keys():
+        for key in result.keys():  # 遍历FG、BG、Total
             result[key]["ee"] = result[key]["ee"] / result[key]["noPoints"]
             result[key]["R1"] = result[key]["R1"] / result[key]["noPoints"]
             result[key]["R2"] = result[key]["R2"] / result[key]["noPoints"]
             result[key]["R3"] = result[key]["R3"] / result[key]["noPoints"]
 
         if len(total_result) == 0:
-            for key in result.keys():
+            for key in result.keys():  # 遍历FG、BG、Total
                 total_result[key] = dict()
                 total_result[key]["ee"] = result[key]["ee"] / len(src)
                 total_result[key]["R1"] = result[key]["R1"] / len(src)
                 total_result[key]["R2"] = result[key]["R2"] / len(src)
                 total_result[key]["R3"] = result[key]["R3"] / len(src)
         else:
-            for key in result.keys():
+            for key in result.keys():  # 遍历FG、BG、Total
                 total_result[key]["ee"] += result[key]["ee"] / len(src)
                 total_result[key]["R1"] += result[key]["R1"] / len(src)
                 total_result[key]["R2"] += result[key]["R2"] / len(src)
@@ -323,14 +328,14 @@ def avg_measures(src):
 
 def avg_measures_no_dict(src):
     total_result = dict()
-    for seq_keys in src.keys():
+    for seq_keys in src.keys():  # 遍历类别
         result = dict()
-        for item in src[seq_keys]:
-            for key in item.keys():
+        for item in src[seq_keys]:  # 遍历连续帧
+            for key in item.keys():  # 遍历FG、BG、Total
                 if key not in result:
                     result[key] = item[key]
                 else:
-                    result[key] += item[key]
+                    result[key] += item[key]    # 此处运算存在Bug，需要转换为List
 
         result["ee"] = result["ee"] / result["no_points"]
         result["R1"] = result["R1"] / result["no_points"]
@@ -351,3 +356,12 @@ def avg_measures_no_dict(src):
                 total_result["R2"] += result["R2"] / len(src)
                 total_result["R3"] += result["R3"] / len(src)
     return total_result
+
+
+def avg_measures_test(filename):
+    data = pickle.load(open(filename, "rb"))
+    result_list = data["result"]
+    method_result_list = get_sequence_measures(result_list)
+    for method_key in method_result_list.keys():
+        avg_measures(method_result_list[method_key])
+        avg_measures_no_dict(method_result_list[method_key])
