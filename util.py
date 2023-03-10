@@ -364,4 +364,4 @@ def avg_measures_test(filename):
     method_result_list = get_sequence_measures(result_list)
     for method_key in method_result_list.keys():
         avg_measures(method_result_list[method_key])
-        avg_measures_no_dict(method_result_list[method_key])
+        # avg_measures_no_dict(method_result_list[method_key])
