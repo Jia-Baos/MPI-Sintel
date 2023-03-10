@@ -219,10 +219,11 @@ def avg_sequences(sequence_list, use_type):
     res_total_ee = []
     res_total_R2 = []
     for seq_name in sequence_list.keys():  # 遍历类别
-        if use_type == 1 and seq_name.find("_hDyn") == -1:
-            continue
         if use_type == 0 and seq_name.find("_hDyn") >= 0:
             continue
+        if use_type == 1 and seq_name.find("_hDyn") == -1:
+            continue
+
         res_FG_ee.append(sequence_list[seq_name]["FG"]["ee"])
         res_FG_R2.append(sequence_list[seq_name]["FG"]["R2"])
         res_BG_ee.append(sequence_list[seq_name]["BG"]["ee"])
